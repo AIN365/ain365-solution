@@ -13,7 +13,7 @@ pipeline {
     }
     stage('Deploy to CF') {
       steps {
-        sh "/tools/deployToCF.sh ${params.userId}"
+        sh "/tools/deployToCFSolution.sh ${params.userId}"
       }
     }
   }
