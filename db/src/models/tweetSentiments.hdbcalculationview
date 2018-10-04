@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="ain365.exercise.models::tweetSentiments" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="Tweet Sentiments"/>
+<localVariables>
+  <variable id="TIMEFRAME" parameter="true">
+    <descriptions defaultDescription="Time Frame"/>
+    <variableProperties datatype="INTEGER" mandatory="true">
+      <valueDomain type="StaticList">
+        <listEntry id="-3600">
+          <descriptions defaultDescription="Last Hour"/>
+        </listEntry>
+        <listEntry id="-43200">
+          <descriptions defaultDescription="Last 12 Hours"/>
+        </listEntry>
+        <listEntry id="-86400">
+          <descriptions defaultDescription="Last 24 Hours"/>
+        </listEntry>
+        <listEntry id="-259200">
+          <descriptions defaultDescription="Last 3 Days"/>
+        </listEntry>
+        <listEntry id="-604800">
+          <descriptions defaultDescription="Last 7 Days"/>
+        </listEntry>
+        <listEntry id="0">
+          <descriptions defaultDescription="Show All"/>
+        </listEntry>
+      </valueDomain>
+      <selection multiLine="false" type="Single"/>
+    </variableProperties>
+  </variable>
+  <variable id="HASHTAG" parameter="true">
+    <descriptions defaultDescription="Hashtag"/>
+    <variableProperties datatype="NVARCHAR" length="50" mandatory="false">
+      <valueDomain type="empty"/>
+      <selection multiLine="false" type="Single"/>
+    </variableProperties>
+  </variable>
+  <variable id="BASKET" parameter="true">
+    <descriptions defaultDescription=""/>
+    <variableProperties datatype="INTEGER" mandatory="true">
+      <valueDomain type="StaticList">
+        <listEntry id="5">
+          <descriptions defaultDescription="5 Minutes"/>
+        </listEntry>
+        <listEntry id="10">
+          <descriptions defaultDescription="10 Minutes"/>
+        </listEntry>
+      
+        <listEntry id="15">
+          <descriptions defaultDescription="15 Minutes"/>
+        </listEntry>
+      </valueDomain>
+      <selection multiLine="false" type="Single"/>
+      <defaultRange lowValue="5"/>
+    </variableProperties>
+  </variable>
+</localVariables>
+<variableMappings>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="ain365.exercise.synonyms::Tweets">
+    <targetVariable name="TIMEFRAME" resourceUri="ain365.exercise.synonyms::Tweets"/>
+    <localVariable>TIMEFRAME</localVariable>
+  </mapping>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="ain365.exercise.synonyms::Tweets">
+    <targetVariable name="HASHTAG" resourceUri="ain365.exercise.synonyms::Tweets"/>
+    <localVariable>HASHTAG</localVariable>
+  </mapping>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="ain365.exercise.synonyms::Tweets">
+    <targetVariable name="BASKET" resourceUri="ain365.exercise.synonyms::Tweets"/>
+    <localVariable>BASKET</localVariable>
+  </mapping>
+</variableMappings>
+<dataSources>
+  <DataSource id="ain365.exercise.synonyms::TweetSentiments">
+    <resourceUri>ain365.exercise.synonyms::TweetSentiments</resourceUri>
+  </DataSource>
+  <DataSource id="ain365.exercise.synonyms::Tweets">
+    <resourceUri>ain365.exercise.synonyms::Tweets</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_TweetsSentiments" cardinality="C1_1" joinType="inner">
+    <viewAttributes>
+      <viewAttribute id="TWEET_ID">
+        <descriptions defaultDescription="Tweet ID"/>
+      </viewAttribute>
+      <viewAttribute id="PLACE">
+        <descriptions defaultDescription="Place"/>
+      </viewAttribute>
+      <viewAttribute id="CC_DYNAMICBASKET">
+        <descriptions defaultDescription="Dynamic Basket"/>
+      </viewAttribute>
+      <viewAttribute id="CC_DYNAMICBASKET_DISPLAY">
+        <descriptions defaultDescription="Dynamic Basket (Display)"/>
+      </viewAttribute>
+      <viewAttribute id="NEUTRAL" aggregationType="sum">
+        <descriptions defaultDescription="NEUTRAL"/>
+      </viewAttribute>
+      <viewAttribute id="WEAK_POSITIVE" aggregationType="sum">
+        <descriptions defaultDescription="WEAK_POSITIVE"/>
+      </viewAttribute>
+      <viewAttribute id="WEAK_NEGATIVE" aggregationType="sum">
+        <descriptions defaultDescription="WEAK_NEGATIVE"/>
+      </viewAttribute>
+      <viewAttribute id="STRONG_POSITIVE" aggregationType="sum">
+        <descriptions defaultDescription="STRONG_POSITIVE"/>
+      </viewAttribute>
+      <viewAttribute id="STRONG_NEGATIVE" aggregationType="sum">
+        <descriptions defaultDescription="STRONG_NEGATIVE"/>
+      </viewAttribute>
+      <viewAttribute hidden="true" id="JOIN$TWEET_ID$TWEET_ID"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_POSITIVE" datatype="DOUBLE" expressionLanguage="COLUMN_ENGINE">
+        <formula>&quot;STRONG_POSITIVE&quot; + (&quot;WEAK_POSITIVE&quot; * 0.5)</formula>
+      </calculatedViewAttribute>
+      <calculatedViewAttribute id="CC_NEGATIVE" datatype="DOUBLE" expressionLanguage="COLUMN_ENGINE">
+        <formula>&quot;STRONG_NEGATIVE&quot; + (&quot;WEAK_NEGATIVE&quot; * 0.5)</formula>
+      </calculatedViewAttribute>
+      <calculatedViewAttribute id="CC_NEUTRAL" datatype="DOUBLE" expressionLanguage="COLUMN_ENGINE">
+        <formula>&quot;NEUTRAL&quot; * 0.5</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <restrictedViewAttributes/>
+    <input node="ain365.exercise.synonyms::TweetSentiments">
+      <mapping xsi:type="Calculation:AttributeMapping" target="NEUTRAL" source="NEUTRAL"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="WEAK_POSITIVE" source="WEAK_POSITIVE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="WEAK_NEGATIVE" source="WEAK_NEGATIVE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="STRONG_POSITIVE" source="STRONG_POSITIVE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="STRONG_NEGATIVE" source="STRONG_NEGATIVE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$TWEET_ID$TWEET_ID" source="TWEET_ID"/>
+    </input>
+    <input node="ain365.exercise.synonyms::Tweets">
+      <mapping xsi:type="Calculation:AttributeMapping" target="TWEET_ID" source="TWEET_ID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="PLACE" source="PLACE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_DYNAMICBASKET" source="CC_DYNAMICBASKET"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_DYNAMICBASKET_DISPLAY" source="CC_DYNAMICBASKET_DISPLAY"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$TWEET_ID$TWEET_ID" source="TWEET_ID"/>
+    </input>
+    <joinAttribute name="JOIN$TWEET_ID$TWEET_ID"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Join_TweetsSentiments">
+  <attributes>
+    <attribute id="TWEET_ID" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Tweet ID"/>
+      <keyMapping columnObjectName="Join_TweetsSentiments" columnName="TWEET_ID"/>
+    </attribute>
+    <attribute id="PLACE" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Place"/>
+      <keyMapping columnObjectName="Join_TweetsSentiments" columnName="PLACE"/>
+    </attribute>
+    <attribute id="CC_DYNAMICBASKET" order="3" descriptionColumnName="CC_DYNAMICBASKET_DISPLAY" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Dynamic Basket"/>
+      <keyMapping columnObjectName="Join_TweetsSentiments" columnName="CC_DYNAMICBASKET"/>
+    </attribute>
+    <attribute id="CC_DYNAMICBASKET_DISPLAY" hidden="true" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Dynamic Basket (Display)"/>
+      <keyMapping columnObjectName="Join_TweetsSentiments" columnName="CC_DYNAMICBASKET_DISPLAY"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="CC_POSITIVE" order="5" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Positive"/>
+      <measureMapping columnObjectName="Join_TweetsSentiments" columnName="CC_POSITIVE"/>
+    </measure>
+    <measure id="CC_NEGATIVE" order="6" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Negative"/>
+      <measureMapping columnObjectName="Join_TweetsSentiments" columnName="CC_NEGATIVE"/>
+    </measure>
+    <measure id="CC_NEUTRAL" order="7" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Neutral"/>
+      <measureMapping columnObjectName="Join_TweetsSentiments" columnName="CC_NEUTRAL"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+  <localDimensions/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Join_TweetsSentiments" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="27" y="234"/>
+      <rectangleSize height="30" width="316"/>
+    </shape>
+    <shape modelObjectName="ain365.exercise.synonyms::TweetSentiments" modelObjectNameSpace="Join_TweetsSentiments" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="250"/>
+    </shape>
+    <shape modelObjectName="ain365.exercise.synonyms::Tweets" modelObjectNameSpace="Join_TweetsSentiments" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="253.900390625"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>
